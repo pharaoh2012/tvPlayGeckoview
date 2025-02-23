@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId = "com.pharaoh.tvplay"
-        minSdk = 19
+        minSdk = 21
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -24,14 +24,17 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
 }
 
 dependencies {
-
+    implementation("org.mozilla.geckoview:geckoview:120.0.20231208211905")
+    //implementation("androidx.webkit:webkit:1.8.0") // 使用最新稳定版本
+    // 135.0.20250216192613
+//    implementation("org.mozilla.geckoview:geckoview:135.0.20250216192613")
 // implementation("com.google.android.material:material:1.10.0")
 //    implementation("androidx.appcompat:appcompat:1.6.1")
 //    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
