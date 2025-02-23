@@ -14,6 +14,23 @@ window.wrappedJSObject.JSBridge = cloneInto(
 
 JSBridge.postMessage("this is message from content.js:"+location.hostname);
 
+const AndroidJs = {
+    click: function (x, y) {
+        browser.runtime.sendMessage({
+            action: "click",
+            x: x,
+            y: y
+        });
+    },
+    toast: function (msg) {
+        browser.runtime.sendMessage({
+            action: "toast",
+            data: msg
+        });
+    }
+}
+
+
 browser.runtime.onMessage.addListener((data, sender) => {
     console.log("content:eval:" + data);
     if (data.action === 'evalJavascript') {

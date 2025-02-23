@@ -388,6 +388,14 @@ public class GeckoViewActivity extends Activity {
                         String data = jsonObject.getString("data");
                         Toast.makeText(GeckoViewActivity.this, data, Toast.LENGTH_LONG).show();
                     }
+                    else if ("toast".equals(action)) {
+                        String data = jsonObject.getString("data");
+                        Toast.makeText(GeckoViewActivity.this, data, Toast.LENGTH_LONG).show();
+                    } else if("click".equals(action)) {
+                        float x = jsonObject.getFloat("x");
+                        float y = jsonObject.getFloat("y");
+                        simulateClickAtCoordinate(x, y, 1000);
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
