@@ -32,6 +32,8 @@ android {
 
 dependencies {
     implementation("org.mozilla.geckoview:geckoview:120.0.20231208211905")
+    // 133.0.20241204213141
+    // 120.0.20231208211905
     //implementation("androidx.webkit:webkit:1.8.0") // 使用最新稳定版本
     // 135.0.20250216192613
 //    implementation("org.mozilla.geckoview:geckoview:135.0.20250216192613")

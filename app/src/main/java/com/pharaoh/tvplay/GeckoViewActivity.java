@@ -6,15 +6,19 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import org.json.JSONObject;
 import org.mozilla.geckoview.GeckoRuntime;
 import org.mozilla.geckoview.GeckoSession;
 import org.mozilla.geckoview.GeckoView;
+import org.mozilla.geckoview.WebExtension;
+import org.mozilla.geckoview.GeckoResult;
 
 public class GeckoViewActivity extends Activity {
 
@@ -148,34 +152,25 @@ public class GeckoViewActivity extends Activity {
                 return false;
             }
         });
-//        view.setOnLongClickListener(new View.OnLongClickListener() {
-//
-//            @Override
-//            public boolean onLongClick(View v) {
-//                //PlayNext();
-//                toast("onLongClick");
-//                int h = view.getHeight()/2;
-//                if(lastTouchDownXY[1]<h) {
-//                    showConfigDialog();
-//                }
-//                else {
-//                    int w = view.getWidth()/2;
-//                    if(lastTouchDownXY[0]<w) {
-//                        PlayPre();
-//                    } else {
-//                        PlayNext();
-//                    }
-//                }
-//                //showConfigDialog();
-//                return true;
-//            }
-//        });
 
 
         session = new GeckoSession();
 
 // Workaround for Bug 1758212
         session.setContentDelegate(new GeckoSession.ContentDelegate() {});
+
+        // 启用自动播放
+        session.setPermissionDelegate(new GeckoSession.PermissionDelegate() {
+            @Override
+            public GeckoResult<Integer> onContentPermissionRequest(GeckoSession session, ContentPermission perm) {
+                if (perm.permission == GeckoSession.PermissionDelegate.PERMISSION_AUTOPLAY_AUDIBLE ||
+                        perm.permission == GeckoSession.PermissionDelegate.PERMISSION_AUTOPLAY_INAUDIBLE) {
+                    return GeckoResult.fromValue(ContentPermission.VALUE_ALLOW);
+                }
+                return GeckoResult.fromValue(ContentPermission.VALUE_ALLOW);
+                // return super.onContentPermissionRequest(session, perm);
+            }
+        });
 
         // session.PermissionDelegate = new
 
@@ -186,23 +181,30 @@ public class GeckoViewActivity extends Activity {
             @Override
             public void onPageStart(GeckoSession session, String url) {
                 //super.onPageStart(session,url);
-                String jsCode = "alert('Hello from onPageStart!');";
-                session.loadUri("javascript:" + jsCode);
+                // evaluateJavascript("window.appMessage('onPageStart')");
+//                String jsCode = "alert('Hello from onPageStart!');";
+//                session.loadUri("javascript:" + jsCode);
             }
 
             @Override
             public void onPageStop(GeckoSession session, boolean success) {
                 // super.onPageLoad(session, success);
-                Toast.makeText(GeckoViewActivity.this, "on page stop", Toast.LENGTH_SHORT).show();
-                // 页面加载完成后执行 JavaScript
-                String jsCode = "alert('Hello from onPageStop!');";
-                session.loadUri("javascript:" + jsCode);
+                // evaluateJavascript("window.appMessage('on page stop')");
+                // Toast.makeText(GeckoViewActivity.this, "on page stop", Toast.LENGTH_SHORT).show();
+//                // 页面加载完成后执行 JavaScript
+//                String jsCode = "alert('Hello from onPageStop!');";
+//                session.loadUri("javascript:" + jsCode);
             }
         });
 
         if (sRuntime == null) {
             // GeckoRuntime can only be initialized once per process
             sRuntime = GeckoRuntime.create(this);
+
+            sRuntime.getSettings().setRemoteDebuggingEnabled(true);
+
+            installExtension();
+
         }
 
 
@@ -360,5 +362,77 @@ public class GeckoViewActivity extends Activity {
             sRuntime = null;
         }
     }
+
+    // js
+
+    private final WebExtension.MessageDelegate mMessagingDelegate = new WebExtension.MessageDelegate() {
+
+        @Override
+        public void onConnect(WebExtension.Port port) {
+            Log.e("MessageDelegate", "onConnect");
+            mPort = port;
+            mPort.setDelegate(mPortDelegate);
+        }
+    };
+
+    private final WebExtension.PortDelegate mPortDelegate = new WebExtension.PortDelegate() {
+        @Override
+        public void onPortMessage(final Object message, final WebExtension.Port port) {
+            Log.e("MessageDelegate", "Received message from extension: " + message);
+            try {
+                if (message instanceof JSONObject) {
+                    Log.e("MessageDelegate", "Received JSONObject");
+                    JSONObject jsonObject = (JSONObject) message;
+                    String action = jsonObject.getString("action");
+                    if ("JSBridge".equals(action)) {
+                        String data = jsonObject.getString("data");
+                        Toast.makeText(GeckoViewActivity.this, data, Toast.LENGTH_LONG).show();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void onDisconnect(final WebExtension.Port port) {
+            Log.e("MessageDelegate", "onDisconnect");
+            if (port == mPort) {
+                mPort = null;
+            }
+        }
+    };
+
+    private WebExtension.Port mPort;
+
+    public void installExtension() {
+        sRuntime.getWebExtensionController()
+                .ensureBuiltIn("resource://android/assets/messaging/", "messaging@example.com")
+                .accept(
+                        extension -> {
+                            Log.i("MessageDelegate", "Extension installed: " + extension);
+                            runOnUiThread(() -> extension.setMessageDelegate(mMessagingDelegate, "browser"));
+                        },
+                        e -> {
+                            Log.e("MessageDelegate", "Error registering WebExtension", e);
+                        }
+                );
+    }
+
+    public void evaluateJavascript(String javascriptString) {
+        try {
+            long id = System.currentTimeMillis();
+            Log.e("evalJavascript:id:", String.valueOf(id));
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("action", "evalJavascript");
+            jsonObject.put("data", javascriptString);
+            jsonObject.put("id", id);
+            Log.e("evalJavascript:", jsonObject.toString());
+            mPort.postMessage(jsonObject);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }
