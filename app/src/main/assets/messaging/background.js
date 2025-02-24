@@ -35,3 +35,14 @@ browser.runtime.onMessage.addListener((data, sender) => {
    //}
    return Promise.resolve('done');
 })
+
+function listener(details) {
+  // blocks all images from twitter.com
+  return {cancel: true};
+}
+
+browser.webRequest.onBeforeRequest.addListener(
+  listener,
+  {types: ["image"],urs:["*"]}, //urls: ["*://*.mozilla.org/*"],
+  ["blocking"]
+);

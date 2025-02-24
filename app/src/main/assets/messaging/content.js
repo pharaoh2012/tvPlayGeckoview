@@ -63,3 +63,5 @@ browser.runtime.onMessage.addListener((data, sender) => {
         return Promise.resolve(evalCallBack);
     }
 });
+
+AndroidJs.toast(navigator.userAgent);

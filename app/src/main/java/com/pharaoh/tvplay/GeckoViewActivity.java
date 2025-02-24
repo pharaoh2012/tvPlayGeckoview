@@ -14,8 +14,11 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import org.json.JSONObject;
+import org.mozilla.geckoview.ContentBlocking;
 import org.mozilla.geckoview.GeckoRuntime;
+import org.mozilla.geckoview.GeckoRuntimeSettings;
 import org.mozilla.geckoview.GeckoSession;
+import org.mozilla.geckoview.GeckoSessionSettings;
 import org.mozilla.geckoview.GeckoView;
 import org.mozilla.geckoview.WebExtension;
 import org.mozilla.geckoview.GeckoResult;
@@ -44,6 +47,7 @@ public class GeckoViewActivity extends Activity {
         return PlayUrls[currentCCTV-1].trim();
     }
 
+
     private void Play() {
         GeckoViewActivity.this.runOnUiThread(new Runnable() {
             @Override
@@ -51,12 +55,22 @@ public class GeckoViewActivity extends Activity {
                 String url = getUrl();
                 String u1 = url;
                 String useragent = null;
+                toast(url);
                 if(url.contains("##")) {
                     int index = url.indexOf("##"); // 获取第一个 # 的索引位置
                     u1 = url.substring(0, index); // 第一部分：# 前的字符串
                     useragent = url.substring(index + 2); // 第二部分：第一个 # 后的所有内容
+                    // toast(useragent);
+                    session.getSettings().setUserAgentMode(GeckoSessionSettings.USER_AGENT_MODE_DESKTOP);
+                    session.getSettings().setViewportMode(GeckoSessionSettings.VIEWPORT_MODE_DESKTOP);
                 }
-                session.getSettings().setUserAgentOverride(useragent);
+                else {
+//                    session.getSettings().setUserAgentMode(GeckoSessionSettings.USER_AGENT_MODE_MOBILE);
+//                    session.getSettings().setViewportMode(GeckoSessionSettings.VIEWPORT_MODE_MOBILE);
+                }
+                //session.getSettings().setUserAgentOverride(useragent);
+
+                view.releaseSession();
                 view.setSession(session);
                 session.loadUri(u1);
             }
@@ -196,11 +210,11 @@ public class GeckoViewActivity extends Activity {
 //                session.loadUri("javascript:" + jsCode);
             }
         });
+        session.getSettings().setUserAgentMode(GeckoSessionSettings.USER_AGENT_MODE_DESKTOP);
 
         if (sRuntime == null) {
             // GeckoRuntime can only be initialized once per process
             sRuntime = GeckoRuntime.create(this);
-
             sRuntime.getSettings().setRemoteDebuggingEnabled(true);
 
             installExtension();
@@ -254,7 +268,7 @@ public class GeckoViewActivity extends Activity {
             }
             return true;
         }
-        Toast.makeText(this,"KeyCode:"+keyCode,Toast.LENGTH_SHORT).show();
+        // Toast.makeText(this,"KeyCode:"+keyCode,Toast.LENGTH_SHORT).show();
         switch (keyCode) {
             case KeyEvent.KEYCODE_CHANNEL_DOWN:
                 PlayPre();
