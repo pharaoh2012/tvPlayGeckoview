@@ -30,8 +30,8 @@ port.onMessage.addListener(request => {
 browser.runtime.onMessage.addListener((data, sender) => {
    let action = data.action;
    console.log("background:content:onMessage:" + action);
-   if (action === 'JSBridge') {
+   //if (action === 'JSBridge') {
        port.postMessage(data);
-   }
+   //}
    return Promise.resolve('done');
 })

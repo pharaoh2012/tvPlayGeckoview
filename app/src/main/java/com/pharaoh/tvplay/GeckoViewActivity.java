@@ -384,17 +384,21 @@ public class GeckoViewActivity extends Activity {
                     Log.e("MessageDelegate", "Received JSONObject");
                     JSONObject jsonObject = (JSONObject) message;
                     String action = jsonObject.getString("action");
-                    if ("JSBridge".equals(action)) {
-                        String data = jsonObject.getString("data");
-                        Toast.makeText(GeckoViewActivity.this, data, Toast.LENGTH_LONG).show();
-                    }
-                    else if ("toast".equals(action)) {
-                        String data = jsonObject.getString("data");
-                        Toast.makeText(GeckoViewActivity.this, data, Toast.LENGTH_LONG).show();
-                    } else if("click".equals(action)) {
-                        float x = jsonObject.getFloat("x");
-                        float y = jsonObject.getFloat("y");
-                        simulateClickAtCoordinate(x, y, 1000);
+                    // toast("onPortMessage:"+action);
+                    switch (action) {
+                        case "JSBridge" -> {
+                            String data = jsonObject.getString("data");
+                            Toast.makeText(GeckoViewActivity.this, data, Toast.LENGTH_LONG).show();
+                        }
+                        case "toast" -> {
+                            String data1 = jsonObject.getString("data");
+                            Toast.makeText(GeckoViewActivity.this, data1, Toast.LENGTH_LONG).show();
+                        }
+                        case "click" -> {
+                            float x = (float) jsonObject.getDouble("x");
+                            float y = (float) jsonObject.getDouble("y");
+                            simulateClickAtCoordinate(x, y, 1000);
+                        }
                     }
                 }
             } catch (Exception e) {

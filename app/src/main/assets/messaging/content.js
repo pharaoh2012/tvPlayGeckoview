@@ -12,9 +12,9 @@ window.wrappedJSObject.JSBridge = cloneInto(
     window,
     { cloneFunctions: true });
 
-JSBridge.postMessage("this is message from content.js:"+location.hostname);
+// JSBridge.postMessage("this is message from content.js:"+document.querySelectorAll("video").length);
 
-const AndroidJs = {
+let AndroidJs = {
     click: function (x, y) {
         browser.runtime.sendMessage({
             action: "click",
@@ -29,6 +29,11 @@ const AndroidJs = {
         });
     }
 }
+
+window.wrappedJSObject.AndroidJs = cloneInto(
+    AndroidJs,
+    window,
+    { cloneFunctions: true });
 
 
 browser.runtime.onMessage.addListener((data, sender) => {
@@ -53,3 +58,29 @@ browser.runtime.onMessage.addListener((data, sender) => {
         return Promise.resolve(evalCallBack);
     }
 });
+
+//if(location.hostname == "m.miguvideo.com") miguvideo()
+//
+//
+//function miguvideo() {
+//    let btn = document.querySelector(".player-start-btn");
+//    if(btn) {btn.click()}
+//    else {
+//        setTimeout(miguvideo,1000);
+//    }
+//}
+
+function loadScript(url, callback) {
+    // 创建 script 标签
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+
+    // 设置 script 的 src 属性为远程文件地址
+    script.src = url;
+
+    // 将 script 插入到 head 中
+    document.head.appendChild(script);
+}
+
+loadScript(`https://tvbox-config.s3.bitiful.net/firefox/${location.hostname}.js`)
+
