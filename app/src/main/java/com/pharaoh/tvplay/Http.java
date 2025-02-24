@@ -6,6 +6,7 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import android.content.Context;
+import android.util.Log;
 
 public class Http {
     private static File cacheDir; // 缓存目录
@@ -20,12 +21,15 @@ public class Http {
 
     static public String Get(String url, HttpCallback cb) {
         try {
+            Log.i("HttpGet","beginGet:" + url);
             String ret = Get(new URL(url),null);
+            // Log.i("HttpGet","result:" + ret);
             if (cb != null) {
                 cb.result(ret);
             }
             return ret;
         } catch (IOException ex) {
+            Log.e("HttpGet",url,ex);
             return null;
         }
     }
@@ -76,6 +80,7 @@ public class Http {
                 return null;
             }
         } catch (Exception ex) {
+            Log.e("HttpGet","cache error",ex);
             if (cb != null) {
                 cb.result(null);
             }

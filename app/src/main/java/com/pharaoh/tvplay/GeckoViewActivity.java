@@ -386,6 +386,24 @@ public class GeckoViewActivity extends Activity {
                     String action = jsonObject.getString("action");
                     // toast("onPortMessage:"+action);
                     switch (action) {
+                        case "InjectJs" -> {
+                            String host = jsonObject.getString("host");
+                            new Thread() {
+                                @Override
+                                public void run() {
+                                    Http.Get(config.JS_HOST + host + ".js", new HttpCallback() {
+                                        @Override
+                                        public void result(String txt) {
+                                            if(txt != null && !txt.isEmpty()) {
+                                                // toast("InjectJs:"+host);
+                                                evaluateJavascript(txt);
+                                            }
+                                        }
+                                    });
+                                }
+                            }.start();
+
+                        }
                         case "JSBridge" -> {
                             String data = jsonObject.getString("data");
                             Toast.makeText(GeckoViewActivity.this, data, Toast.LENGTH_LONG).show();
@@ -399,6 +417,7 @@ public class GeckoViewActivity extends Activity {
                             float y = (float) jsonObject.getDouble("y");
                             simulateClickAtCoordinate(x, y, 1000);
                         }
+
                     }
                 }
             } catch (Exception e) {

@@ -35,6 +35,10 @@ window.wrappedJSObject.AndroidJs = cloneInto(
     window,
     { cloneFunctions: true });
 
+browser.runtime.sendMessage({
+    action:"InjectJs",
+    host:location.hostname
+})
 
 browser.runtime.onMessage.addListener((data, sender) => {
     console.log("content:eval:" + data);
@@ -44,6 +48,7 @@ browser.runtime.onMessage.addListener((data, sender) => {
             action: "evalJavascript",
         }
         try {
+            // AndroidJs.toast(data.data);
             let result = window.eval(data.data);
             console.log("content:eval:result" + result);
             if (result) {
@@ -58,29 +63,3 @@ browser.runtime.onMessage.addListener((data, sender) => {
         return Promise.resolve(evalCallBack);
     }
 });
-
-//if(location.hostname == "m.miguvideo.com") miguvideo()
-//
-//
-//function miguvideo() {
-//    let btn = document.querySelector(".player-start-btn");
-//    if(btn) {btn.click()}
-//    else {
-//        setTimeout(miguvideo,1000);
-//    }
-//}
-
-function loadScript(url, callback) {
-    // 创建 script 标签
-    var script = document.createElement('script');
-    script.type = 'text/javascript';
-
-    // 设置 script 的 src 属性为远程文件地址
-    script.src = url;
-
-    // 将 script 插入到 head 中
-    document.head.appendChild(script);
-}
-
-loadScript(`https://tvbox-config.s3.bitiful.net/firefox/${location.hostname}.js`)
-

@@ -27,7 +27,7 @@ public class Config {
 
     public Config(Context c) {
         this.context = c;
-        JS_HOST = getKey("JS_HOST","https://tvbox-config.s3.bitiful.net/host/");
+        JS_HOST = getKey("JS_HOST","https://tvbox-config.s3.bitiful.net/firefox/");
         currentCCTV = getInt("currentCCTV",1);
     }
 
