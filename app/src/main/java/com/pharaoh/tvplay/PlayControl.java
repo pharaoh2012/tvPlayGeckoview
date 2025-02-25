@@ -5,16 +5,20 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import org.mozilla.geckoview.GeckoRuntime;
+
 public class PlayControl {
     public static PlayControl Instance = new PlayControl();
+    public static GeckoRuntime sRuntime;
 
-    public PlayInfo playInfo = new PlayInfo();
+    public PlayInfo playInfo;
 
     long lastBackTime = 0;
     Config config;
@@ -25,6 +29,13 @@ public class PlayControl {
 
     public void setActivity(Activity a) {
         activity = a;
+    }
+
+    public void CloseGecko() {
+//        if (sRuntime != null) {
+//            sRuntime.shutdown();
+//            sRuntime = null;
+//        }
     }
 
     public String getHostJs(String host) {
@@ -44,33 +55,20 @@ public class PlayControl {
         if(currentCCTV>length) currentCCTV=1;
         if(currentCCTV < 1) currentCCTV = length;
         config.setCurrentCCTV(currentCCTV);
-        toast("播放"+ currentCCTV +"频道", Toast.LENGTH_LONG);
+        // toast("播放"+ currentCCTV +"频道");
         return PlayUrls[currentCCTV-1].trim();
     }
 
     private void Play() {
         String url = getUrl();
-        String u1 = url;
-        String useragent = null;
-        Boolean firefox=false;
-        Boolean desktop = false;
-        if(url.contains("##")) {
-            int index = url.indexOf("##"); // 获取第一个 # 的索引位置
-            u1 = url.substring(0, index); // 第一部分：# 前的字符串
-            useragent = url.substring(index + 2); // 第二部分：第一个 # 后的所有内容
-            firefox = useragent.contains("webview=firefox");
-            desktop = useragent.contains("desktop=1");
-        }
-        playInfo.url = u1;
-        playInfo.desktop = desktop;
-        playInfo.type = firefox?1:0;
-        Intent intent;
-        if(firefox) intent = new Intent(activity,GeckoViewActivity.class);
-        else intent = new Intent(activity,MainActivity.class);
-        intent.putExtra("desktop",desktop);
+        int cur = config.getCurrentCCTV();
+        playInfo = new PlayInfo(url,cur);
 
+        Intent intent;
+        if(playInfo.type == 1) intent = new Intent(activity,GeckoViewActivity.class);
+        else intent = new Intent(activity,MainActivity.class);
         activity.startActivity(intent);
-        activity.finish();
+        // activity.finish();
 
     }
 
@@ -172,10 +170,12 @@ public class PlayControl {
 
     public boolean DoTouch(MotionEvent event) {
 
+        Log.d("DoTouch",event.toString());
         // save the X,Y coordinates
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
             lastTouchDownXY[0] = event.getX();
             lastTouchDownXY[1] = event.getY();
+            return false;
             //toast("onTouch down");
         } else if(event.getActionMasked() == MotionEvent.ACTION_UP) {
             if(lastTouchDownXY[1]>300) return false;
@@ -194,6 +194,7 @@ public class PlayControl {
             } else {
                 if(Math.abs(dx)>100) return false;
                 showConfigDialog();
+                return false;
             }
         }
         return false;

@@ -19,13 +19,14 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
 public class MainActivity extends Activity {
-    LinearLayout mWebContainer;
+    // LinearLayout mWebContainer;
     WebView mWebView;
 
     @Override
@@ -33,7 +34,10 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mWebContainer = (LinearLayout)findViewById(R.id.webViewParent);
+        PlayControl.Instance.setActivity(this);
+        // toast("Chrome!!!");
+
+        // mWebContainer = (LinearLayout)findViewById(R.id.webViewParent);
 
         mWebView = (WebView) findViewById(R.id.webview);
         initWebSettings();
@@ -52,20 +56,30 @@ public class MainActivity extends Activity {
         });
 
         PlayInfo pinfo = PlayControl.Instance.playInfo;
+
+        TextView txtChannel = (TextView)findViewById(R.id.txtChannel);
+        txtChannel.setText(""+pinfo.current);
+
         if(pinfo.desktop) {
-            toast("set desktop!!!");
+            // toast("set desktop!!!");
             mWebView.getSettings().setUserAgentString(PlayInfo.Desktop_USER_AGENT);
         }
+        if(pinfo.showImage) {
+            mWebView.getSettings().setLoadsImagesAutomatically(true);
+        }
         mWebView.loadUrl(pinfo.url);
+        PlayControl.Instance.CloseGecko();
     }
 
     @Override
-    protected void onDestroy() {
+    protected void onPause() {
+        super.onPause(); // 调用父类方法
         destroyWebView();
-        super.onDestroy();
+        finish(); // 销毁当前Activity
     }
 
     private void destroyWebView() {
+        // toast("❌destroyWebView chrome");
         if(mWebView != null) {
 
             //mWebContainer.removeView(mWebView);

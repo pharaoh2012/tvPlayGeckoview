@@ -12,4 +12,9 @@ public class HomeActivity extends Activity {
         Http.init(this.getApplicationContext());
         PlayControl.Instance.Init(this);
     }
+    @Override
+    protected void onPause() {
+        super.onPause(); // 调用父类方法
+        finish(); // 销毁当前Activity
+    }
 }

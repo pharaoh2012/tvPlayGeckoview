@@ -64,4 +64,4 @@ browser.runtime.onMessage.addListener((data, sender) => {
     }
 });
 
-AndroidJs.toast(navigator.userAgent);
+// AndroidJs.toast(navigator.userAgent);

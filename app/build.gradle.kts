@@ -32,6 +32,7 @@ android {
 
 dependencies {
     implementation("org.mozilla.geckoview:geckoview:120.0.20231208211905")
+    implementation("androidx.constraintlayout:constraintlayout:2.2.0")
     // 133.0.20241204213141
     // 120.0.20231208211905
     //implementation("androidx.webkit:webkit:1.8.0") // 使用最新稳定版本
