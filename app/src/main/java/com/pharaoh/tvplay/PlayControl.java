@@ -2,6 +2,7 @@ package com.pharaoh.tvplay;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.view.KeyEvent;
@@ -12,14 +13,29 @@ import android.widget.Toast;
 
 public class PlayControl {
     public static PlayControl Instance = new PlayControl();
+
+    public PlayInfo playInfo = new PlayInfo();
+
     long lastBackTime = 0;
     Config config;
     String[] PlayUrls = null;
     Activity activity;
+    Context context;
     private float[] lastTouchDownXY = new float[2];
 
     public void setActivity(Activity a) {
         activity = a;
+    }
+
+    public String getHostJs(String host) {
+        return config.JS_HOST+host+".js";
+    }
+
+    public void Init(Activity act) {
+        activity = act;
+        context = act.getApplicationContext();
+        config = new Config(act.getApplicationContext());
+        LoadConfig();
     }
 
     private  String getUrl() {
@@ -32,7 +48,7 @@ public class PlayControl {
         return PlayUrls[currentCCTV-1].trim();
     }
 
-    public void Play() {
+    private void Play() {
         String url = getUrl();
         String u1 = url;
         String useragent = null;
@@ -45,6 +61,9 @@ public class PlayControl {
             firefox = useragent.contains("webview=firefox");
             desktop = useragent.contains("desktop=1");
         }
+        playInfo.url = u1;
+        playInfo.desktop = desktop;
+        playInfo.type = firefox?1:0;
         Intent intent;
         if(firefox) intent = new Intent(activity,GeckoViewActivity.class);
         else intent = new Intent(activity,MainActivity.class);
@@ -74,7 +93,7 @@ public class PlayControl {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(activity, msg, time).show();
+                Toast.makeText(context, msg, time).show();
             }
         });
     }
@@ -180,7 +199,7 @@ public class PlayControl {
         return false;
     }
 
-    public void LoadConfig() {
+    private void LoadConfig() {
         new Thread() {
             @Override
             public void run() {
@@ -203,3 +222,4 @@ public class PlayControl {
 
 
 }
+

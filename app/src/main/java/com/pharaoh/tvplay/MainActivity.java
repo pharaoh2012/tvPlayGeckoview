@@ -28,92 +28,10 @@ public class MainActivity extends Activity {
     LinearLayout mWebContainer;
     WebView mWebView;
 
-    Config config;
-    long lastBackTime = 0;
-    //private GestureDetector mGestureDetector;
-    String[] PlayUrls = null;
-    //int currentCCTV = 1;
-
-    private float[] lastTouchDownXY = new float[2];
-
-    private  String getUrl() {
-        int length = PlayUrls.length;
-        int currentCCTV = config.getCurrentCCTV();
-        if(currentCCTV>length) currentCCTV=1;
-        if(currentCCTV < 1) currentCCTV = length;
-        config.setCurrentCCTV(currentCCTV);
-        toast("播放"+ currentCCTV +"频道",Toast.LENGTH_LONG);
-        return PlayUrls[currentCCTV-1].trim();
-    }
-    private void Play() {
-        MainActivity.this.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                String url = getUrl();
-                String u1 = url;
-                String useragent = null;
-                if(url.contains("##")) {
-                    int index = url.indexOf("##"); // 获取第一个 # 的索引位置
-                    u1 = url.substring(0, index); // 第一部分：# 前的字符串
-                    useragent = url.substring(index + 2); // 第二部分：第一个 # 后的所有内容
-                }
-                mWebView.getSettings().setUserAgentString(useragent);
-                mWebView.loadUrl(u1);
-            }
-        });
-    }
-
-    private void LoadConfig() {
-        new Thread() {
-            @Override
-            public void run() {
-                String text = Http.Get(config.JS_HOST + "config.txt", new HttpCallback() {
-                    @Override
-                    public void result(String text) {
-                        if(text !=null && text.length()>0) {
-                            PlayUrls = text.split("\\n");
-                            Play();
-                        }
-                        else {
-                            toast("获取频道错误!请检查网络是否正常!",Toast.LENGTH_LONG);
-                            MainActivity.this.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    //mWebView.loadData("Null","text/plain","utf8");
-                                    mWebView.loadUrl("about:blank");
-                                }
-                            });
-
-                        }
-                    }
-                });
-
-            }
-        }.start();
-    }
-
-    private void PlayNext() {
-        config.setCurrentCCTV(config.getCurrentCCTV()+1);
-        Play();
-    }
-    private void PlayPre() {
-        config.setCurrentCCTV(config.getCurrentCCTV()-1);
-        Play();
-    }
-    private void Play(int i) {
-        config.setCurrentCCTV(i);
-        mWebView.loadUrl(getUrl());
-    }
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        Http.init(this);
-        //initGesture();
-        config = new Config(this);
 
         mWebContainer = (LinearLayout)findViewById(R.id.webViewParent);
 
@@ -129,38 +47,16 @@ public class MainActivity extends Activity {
         mWebView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent event) {
-                // save the X,Y coordinates
-                if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-                    lastTouchDownXY[0] = event.getX();
-                    lastTouchDownXY[1] = event.getY();
-                }
-                return false;
-            }
-        });
-        mWebView.setOnLongClickListener(new View.OnLongClickListener() {
-
-            @Override
-            public boolean onLongClick(View v) {
-                //PlayNext();
-                int h = mWebView.getHeight()/2;
-                if(lastTouchDownXY[1]<h) {
-                    showConfigDialog();
-                }
-                else {
-                    int w = mWebView.getWidth()/2;
-                    if(lastTouchDownXY[0]<w) {
-                        PlayPre();
-                    } else {
-                        PlayNext();
-                    }
-                }
-                //showConfigDialog();
-                return true;
+                return PlayControl.Instance.DoTouch(event);
             }
         });
 
-        LoadConfig();
-
+        PlayInfo pinfo = PlayControl.Instance.playInfo;
+        if(pinfo.desktop) {
+            toast("set desktop!!!");
+            mWebView.getSettings().setUserAgentString(PlayInfo.Desktop_USER_AGENT);
+        }
+        mWebView.loadUrl(pinfo.url);
     }
 
     @Override
@@ -195,7 +91,7 @@ public class MainActivity extends Activity {
         webSettings.setAllowFileAccess(true);
         //webSettings.setAppCacheEnabled(true);
         webSettings.setDatabaseEnabled(true);
-        webSettings.setLoadsImagesAutomatically(true);
+        webSettings.setLoadsImagesAutomatically(false);
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
         webSettings.setMediaPlaybackRequiresUserGesture(false);
 
@@ -209,7 +105,7 @@ public class MainActivity extends Activity {
                 try {
                     URL u = new URL(url);
                     String  host = u.getHost();
-                    String ujs = config.JS_HOST+host+".js";
+                    String ujs =  PlayControl.Instance.getHostJs(host);
                     //Toast.makeText(MainActivity.this,"JS:"+ujs,Toast.LENGTH_LONG).show();
                     new Thread() {
                         @Override
@@ -345,79 +241,10 @@ public class MainActivity extends Activity {
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             int keyCode = event.getKeyCode();
-            return DoKey(keyCode);
+            return PlayControl.Instance.DoKey(keyCode); // DoKey(keyCode);
         }
         return super.dispatchKeyEvent(event);
     }
-
-    public boolean DoKey(int keyCode) {
-        if(keyCode == KeyEvent.KEYCODE_BACK) {
-            if (System.currentTimeMillis() - lastBackTime > 2000) {
-                lastBackTime = System.currentTimeMillis();
-                toast("再按一次返回键关闭");
-            }
-            else {
-                this.finish();
-            }
-            return true;
-        }
-        Toast.makeText(this,"KeyCode:"+keyCode,Toast.LENGTH_SHORT).show();
-        switch (keyCode) {
-            case KeyEvent.KEYCODE_CHANNEL_DOWN:
-                PlayPre();
-                return true;
-            case KeyEvent.KEYCODE_CHANNEL_UP:
-                PlayNext();
-                return true;
-            case KeyEvent.KEYCODE_MENU:
-                showConfigDialog();
-                return true;
-            default:
-                //Toast.makeText(this,"keyCode:"+keyCode,Toast.LENGTH_LONG).show();
-                if(keyCode > KeyEvent.KEYCODE_0 && keyCode <= KeyEvent.KEYCODE_9) {
-                    Play(keyCode-KeyEvent.KEYCODE_0);
-                    return true;
-                } else if(keyCode > KeyEvent.KEYCODE_NUMPAD_0 && keyCode <= KeyEvent.KEYCODE_NUMPAD_9) {
-                    Play(keyCode-KeyEvent.KEYCODE_NUMPAD_0);
-                    return true;
-                }
-                break;
-        }
-
-        return false;
-    }
-
-    private void showConfigDialog() {
-        // 获取EditText
-        final EditText editText = new EditText(this);
-        editText.setSingleLine();
-        editText.setHint("设置地址");
-        editText.requestFocus();
-        editText.setFocusable(true);
-        editText.setText(config.JS_HOST);
-        AlertDialog.Builder inputDialog = new AlertDialog.Builder(this)
-                .setTitle("请输入设置地址：")
-                .setView(editText).setPositiveButton("确定",
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                String content = editText.getText().toString().trim();
-                                if (content.length() == 0) {
-                                    toast("网址不能为空!");
-                                    return;
-                                }
-                                config.setJS_HOST(content);
-                                LoadConfig();
-                            }
-                        }).setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        dialogInterface.dismiss();
-                    }
-                });
-        inputDialog.create().show();
-    }
-
     public void simulateClickAtCoordinate(WebView webView, float x, float y,int sleepTime) {
         long downTime = System.currentTimeMillis();
         long eventTime = System.currentTimeMillis();
@@ -445,8 +272,6 @@ public class MainActivity extends Activity {
         // 分发事件到 WebView
         webView.dispatchTouchEvent(downEvent);
         webView.dispatchTouchEvent(upEvent);
-
-
 
         // 回收事件对象
         downEvent.recycle();

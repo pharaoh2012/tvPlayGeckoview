@@ -16,11 +16,9 @@
         android:theme="@style/Theme.TvPlay"
         tools:targetApi="31">
         <activity
-            android:name=".GeckoViewActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:exported="true"
+            android:name=".HomeActivity"
             android:screenOrientation="landscape"
-            >
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -28,12 +26,16 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity"
+            android:name=".GeckoViewActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:exported="true"
             android:screenOrientation="landscape">
-
         </activity>
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:exported="true"
+            android:screenOrientation="landscape"></activity>
     </application>
 
 </manifest>
