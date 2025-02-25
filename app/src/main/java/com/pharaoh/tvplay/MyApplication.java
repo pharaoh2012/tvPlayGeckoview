@@ -14,4 +14,12 @@ public class MyApplication extends Application {
         // Toast.makeText(this, "Application Load", Toast.LENGTH_SHORT).show();
 
     }
+
+    @Override
+    public void onTerminate() {
+        super.onTerminate();
+        // PlayControl.Instance.toast("❌❌onTerminate!!",Toast.LENGTH_LONG);
+        Log.w("Application","❌❌onTerminate!!");
+        PlayControl.Instance.CloseGecko();
+    }
 }

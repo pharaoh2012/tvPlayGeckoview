@@ -43,6 +43,6 @@ function listener(details) {
 
 browser.webRequest.onBeforeRequest.addListener(
   listener,
-  {types: ["image"],urs:["*"]}, //urls: ["*://*.mozilla.org/*"],
+  {types: ["image"],urls:["<all_urls>"]}, //urls: ["*://*.mozilla.org/*"],
   ["blocking"]
 );
